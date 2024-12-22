@@ -6,4 +6,4 @@ const AssignmentPage = () => {
     );
   };
   
-  export default AssignmentPage;  
+export default AssignmentPage;  
