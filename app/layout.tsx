@@ -15,17 +15,19 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <div className="min-h-screen flex bg-[#F4F6FA]">
+        <div className="h-screen flex bg-[#F4F6FA] overflow-hidden">
           {/* Sidebar */}
           <Sidebar />
 
           {/* Main Content */}
-          <main className="flex-1 flex flex-col min-h-screen">
+          <main className="flex-1 flex flex-col h-screen">
             {/* Header */}
             <Header />
 
             {/* Dynamic Page Content */}
-            <div className="flex-1 p-4">{children}</div>
+            <div className="flex-1 flex items-center justify-center">
+              {children}
+            </div>
           </main>
         </div>
       </body>
