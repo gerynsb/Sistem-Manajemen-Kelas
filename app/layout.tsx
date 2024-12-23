@@ -1,11 +1,10 @@
+"use client";
+
 import "@/styles/globals.css"; // Pastikan import CSS sesuai lokasi file
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import ClientWrapper from "@/components/ClientWrapper";
 
-export const metadata = {
-  title: "SMKD Management",
-  description: "A management system for SMKD",
-};
 
 export default function RootLayout({
   children,
@@ -22,12 +21,12 @@ export default function RootLayout({
           {/* Main Content */}
           <main className="flex-1 flex flex-col h-screen">
             {/* Header */}
-            <Header />
+            <ClientWrapper>
+              <Header />
+            </ClientWrapper>
 
             {/* Dynamic Page Content */}
-            <div className="flex-1 flex items-center justify-center">
-              {children}
-            </div>
+            <div className="flex-1 flex items-center justify-center">{children}</div>
           </main>
         </div>
       </body>

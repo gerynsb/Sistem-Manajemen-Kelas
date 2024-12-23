@@ -79,7 +79,14 @@ const Sidebar = () => {
 
       {/* Settings */}
       <div className="px-4 py-4">
-        <div className="flex items-center px-4 py-2 space-x-4 text-gray-700 hover:text-blue-600 hover:bg-blue-100 rounded-md cursor-pointer">
+        <div 
+        onClick={() => handleNavigation("Settings", "/settings")}
+        className={`flex items-center px-4 py-2 space-x-4 text-gray-700 hover:text-blue-600 hover:bg-blue-100 rounded-md cursor-pointer ${
+          menuActive === "Settings"
+            ? "text-blue-600 bg-blue-100"
+            : "text-gray-700"
+        }`}
+         >
           <span className="text-xl">⚙️</span>
           <span>Settings</span>
         </div>
