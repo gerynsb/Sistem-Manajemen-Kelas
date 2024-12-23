@@ -6,14 +6,7 @@ import Header from "@/components/Header";
 const HomePage = () => {
   return (
     <div className="min-h-screen flex bg-[#F4F6FA]">
-      {/* Sidebar */}
-      <Sidebar />
-
-      {/* Main Content */}
       <main className="flex-1 flex flex-col">
-        {/* Header */}
-        <Header />
-
         {/* Main Section */}
         <section className="flex-1 flex flex-col items-center justify-center">
           <img
