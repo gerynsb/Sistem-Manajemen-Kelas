@@ -2,7 +2,6 @@
 
 import "@/styles/globals.css";
 import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
 import { Toaster } from "react-hot-toast"; // Tambahkan import untuk Toaster
 import { usePathname } from "next/navigation";
 
@@ -27,16 +26,13 @@ export default function RootLayout({
           // Jika path termasuk noLayoutPaths, render hanya children
           <div>{children}</div>
         ) : (
-          // Layout default dengan Sidebar dan Header
+          // Layout default tanpa Header
           <div className="h-screen flex bg-[#F4F6FA] overflow-hidden">
             {/* Sidebar */}
             <Sidebar />
 
             {/* Main Content */}
             <main className="flex-1 flex flex-col h-screen">
-              {/* Header */}
-              <Header />
-
               {/* Dynamic Page Content */}
               <div className="flex-1 flex items-center justify-center">
                 {children}
