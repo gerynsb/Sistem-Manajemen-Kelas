@@ -3,6 +3,7 @@
 import "@/styles/globals.css";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import { Toaster } from "react-hot-toast"; // Tambahkan import untuk Toaster
 import { usePathname } from "next/navigation";
 
 export default function RootLayout({
@@ -21,6 +22,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <Toaster position="top-right" reverseOrder={false} />
         {isNoLayout ? (
           // Jika path termasuk noLayoutPaths, render hanya children
           <div>{children}</div>

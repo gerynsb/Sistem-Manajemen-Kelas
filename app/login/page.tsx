@@ -1,9 +1,32 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { toast } from "react-hot-toast"; // Import react-hot-toast
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
-const SignUpPage = () => {
+const LoginPage = () => {
   const [userType, setUserType] = useState("Student"); // Default user type
+  const [email, setEmail] = useState(""); // State untuk email/NIS/NIP
+  const [password, setPassword] = useState(""); // State untuk password
+  const router = useRouter();
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      // Login ke Firebase Authentication
+      await signInWithEmailAndPassword(auth, email, password);
+
+      // Berhasil login, tampilkan toast success
+      toast.success("Login successful!");
+      router.push("/"); // Redirect ke HomePage
+    } catch (error) {
+      // Gagal login, tampilkan toast error
+      toast.error("Invalid email or password");
+      console.error("Login error:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#F4F6FA]">
@@ -42,15 +65,19 @@ const SignUpPage = () => {
           </div>
 
           {/* Input Form */}
-          <form className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-6">
             <input
               type="text"
-              placeholder={userType === 'Student' ? 'NIS' : 'NIP'}
+              placeholder={userType === "Student" ? "NIS" : "NIP"}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-[#e6e0e9] text-black focus:outline-none focus:ring-2 focus:ring-purple-300"
             />
             <input
               type="password"
               placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg bg-[#e6e0e9] text-black focus:outline-none focus:ring-2 focus:ring-purple-300"
             />
 
@@ -78,4 +105,4 @@ const SignUpPage = () => {
   );
 };
 
-export default SignUpPage;
+export default LoginPage;
