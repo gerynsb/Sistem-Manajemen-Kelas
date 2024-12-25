@@ -1,10 +1,51 @@
 "use client";
 
-const Header = () => {
+import { useState, useEffect } from "react";
+import { getDoc, doc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase"; // Pastikan mengimpor Firebase
+import { onAuthStateChanged } from "firebase/auth";
+
+const Header = ({ pageTitle }: { pageTitle?: string }) => {
+  const [name, setName] = useState("..."); // Default state untuk nama
+
+  // Fungsi untuk mengambil nama user dari Firestore
+  const fetchUserName = async (uid: string) => {
+    try {
+      const userDoc = await getDoc(doc(db, "users", uid));
+      if (userDoc.exists()) {
+        setName(userDoc.data().name || "User"); // Set nama jika ada, fallback ke "User"
+      } else {
+        console.warn("User document not found.");
+        setName("Guest"); // Default jika dokumen tidak ditemukan
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      setName("Error");
+    }
+  };
+
+  // Listener untuk perubahan autentikasi
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchUserName(user.uid); // Ambil UID untuk fetch nama
+      } else {
+        setName("Guest"); // Default jika tidak ada user yang login
+      }
+    });
+
+    return () => unsubscribe(); // Cleanup listener
+  }, []);
+
   return (
-    <header className="flex items-center justify-between text-black px-8 py-4 border-b-2 border-black bg-[#F4F6FA] w-full" style={{ marginLeft: "10px", marginRight: "900px"}}>
+    <header
+      className="flex items-center justify-between text-black px-8 py-4 border-b-2 border-black bg-[#F4F6FA] w-full"
+      style={{ marginLeft: "10px", marginRight: "900px" }}
+    >
       {/* Heading */}
-      <h1 className="text-4xl font-bold">Selamat Datang, ....</h1>
+      <h1 className="text-4xl font-bold">
+        {pageTitle || `Selamat Datang, ${name}`}
+      </h1>
 
       {/* Action Buttons */}
       <div className="flex items-center space-x-4">

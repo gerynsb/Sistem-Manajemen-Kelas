@@ -1,21 +1,24 @@
-"use client"
+"use client";
 
 import Header from "@/components/Header";
 
-
-
 const AssignmentPage = () => {
-    return (
-      <div className="min-h-screen flex bg-[#F4F6FA]">
-        <div className="flex flex-col flex-1">
-          <Header />
+  return (
+    <div className="min-h-screen flex bg-[#F4F6FA]">
+      {/* Sidebar otomatis diambil dari layout */}
 
-          <div className="flex flex-col flex-1 items-center justify-center text-black">
-            <h1 className="text-4xl font-bold">Welcome to Assignment Page</h1>
-          </div>
+      {/* Konten Utama */}
+      <div className="flex flex-col flex-1">
+        {/* Header */}
+        <Header pageTitle="Assignment" />
+
+        {/* Main Content */}
+        <div className="flex flex-1 flex-col items-center justify-center text-black">
+          <h1 className="text-3xl font-bold">Welcome to Assignment Page</h1>
         </div>
       </div>
-    );
-  };
-  
-export default AssignmentPage;  
+    </div>
+  );
+};
+
+export default AssignmentPage;

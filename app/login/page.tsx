@@ -4,7 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-hot-toast"; // Import react-hot-toast
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore"; // Firestore functions
+import { auth, db } from "@/lib/firebase"; // Import Firebase auth and Firestore
 
 const LoginPage = () => {
   const [userType, setUserType] = useState("Student"); // Default user type
@@ -16,7 +17,22 @@ const LoginPage = () => {
     e.preventDefault();
     try {
       // Login ke Firebase Authentication
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Periksa apakah data user ada di Firestore
+      const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+
+      if (!userDoc.exists()) {
+        // Jika user tidak ada di Firestore, tambahkan data default
+        await setDoc(userRef, {
+          email: user.email,
+          name: email.split("@")[0], // Set nama default dari email
+          role: userType.toLowerCase(), // Set role berdasarkan tipe user
+        });
+        console.log("User document created in Firestore");
+      }
 
       // Berhasil login, tampilkan toast success
       toast.success("Login successful!");
