@@ -38,16 +38,16 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F4F6FA]">
+    <div className="min-h-screen flex flex-col bg-[#F4F6FA] ">
       {/* Header */}
-      <header className="flex items-center justify-between text-black px-8 py-4 border-b-2 border-black bg-[#F4F6FA] w-full">
+      <header className="w-screen max-w-[1280px] flex items-center justify-between text-black px-8 py-4 border-b-2 border-black bg-[#F4F6FA] w-full">
         {/* Heading */}
         <h1 className="text-4xl font-bold">
           {pageTitle || `Selamat Datang, ${name}`}
         </h1>
 
         {/* Action Buttons */}
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-1">
           {/* Button Add */}
           <button className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700">
             +
