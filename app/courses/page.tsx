@@ -1,6 +1,5 @@
 "use client";
 
-import Header from "@/components/Header";
 
 const CoursesPage = () => {
   return (
@@ -9,8 +8,6 @@ const CoursesPage = () => {
 
       {/* Konten Utama */}
       <div className="flex flex-col flex-1">
-        {/* Header */}
-        <Header pageTitle="Courses" />
 
         {/* Main Content */}
         <div className="flex flex-1 flex-col items-center justify-center text-black">

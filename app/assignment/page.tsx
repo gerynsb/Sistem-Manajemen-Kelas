@@ -1,6 +1,5 @@
 "use client";
 
-import Header from "@/components/Header";
 
 const AssignmentPage = () => {
   return (
@@ -9,9 +8,6 @@ const AssignmentPage = () => {
 
       {/* Konten Utama */}
       <div className="flex flex-col flex-1">
-        {/* Header */}
-        <Header pageTitle="Assignment" />
-
         {/* Main Content */}
         <div className="flex flex-1 flex-col items-center justify-center text-black">
           <h1 className="text-3xl font-bold">Welcome to Assignment Page</h1>

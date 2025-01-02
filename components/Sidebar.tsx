@@ -1,18 +1,38 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 const Sidebar = () => {
   const [menuActive, setMenuActive] = useState("Home"); // State untuk menu aktif
   const [dropdownOpen, setDropdownOpen] = useState(false); // State untuk dropdown
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // State untuk sidebar
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // State untuk sidebar (default terbuka)
   const router = useRouter(); // Hook untuk navigasi
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        setIsSidebarOpen(true); // Sidebar selalu terbuka di desktop
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+
+    // Set initial state berdasarkan ukuran layar saat pertama kali render
+    handleResize();
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   const handleNavigation = (name: string, path: string) => {
     setMenuActive(name); // Set menu aktif
     if (path !== "#") {
       router.push(path); // Navigasi ke path jika ada
+    }
+    if (window.innerWidth < 1024) {
+      setIsSidebarOpen(false); // Tutup sidebar setelah navigasi hanya pada mobile
     }
   };
 
@@ -28,9 +48,9 @@ const Sidebar = () => {
 
       {/* Sidebar */}
       <aside
-        className={`w-[250px] bg-white border-r border-gray-200 shadow-md flex flex-col justify-between transition-transform duration-300 z-40 ${
+        className={`fixed top-0 left-0 h-full bg-white border-r border-gray-200 shadow-md flex flex-col justify-between transition-transform duration-300 z-40 ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } lg:translate-x-0`}
+        } lg:static lg:translate-x-0 lg:w-[250px]`}
       >
         <div>
           {/* Menu Items */}
@@ -109,7 +129,7 @@ const Sidebar = () => {
       </aside>
 
       {/* Overlay for mobile */}
-      {isSidebarOpen && (
+      {isSidebarOpen && window.innerWidth < 1024 && (
         <div
           className="fixed inset-0 bg-black opacity-50 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
