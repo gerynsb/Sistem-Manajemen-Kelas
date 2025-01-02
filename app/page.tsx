@@ -4,9 +4,11 @@ import { useState, useEffect } from "react";
 import { getDoc, doc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase"; // Pastikan mengimpor Firebase
 import { onAuthStateChanged } from "firebase/auth";
+import JoinClass from "@/components/JoinClass"; // Import komponen JoinClass
 
 const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
   const [name, setName] = useState("..."); // Default state untuk nama
+  const [isJoinClassOpen, setIsJoinClassOpen] = useState(false); // State untuk dialog JoinClass
 
   // Fungsi untuk mengambil nama user dari Firestore
   const fetchUserName = async (uid: string) => {
@@ -38,9 +40,9 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F4F6FA] ">
+    <div className="min-h-screen flex flex-col bg-[#F4F6FA]">
       {/* Header */}
-      <header className="w-screen max-w-[1280px] flex items-center justify-between text-black px-8 py-4 border-b-2 border-black bg-[#F4F6FA] w-full">
+      <header className="w-screen max-w-[1280px] flex items-center justify-between text-black px-8 py-4 border-b-2 border-black bg-[#F4F6FA]">
         {/* Heading */}
         <h1 className="text-4xl font-bold">
           {pageTitle || `Selamat Datang, ${name}`}
@@ -49,7 +51,10 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
         {/* Action Buttons */}
         <div className="flex items-center space-x-1">
           {/* Button Add */}
-          <button className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700">
+          <button
+            className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700"
+            onClick={() => setIsJoinClassOpen(true)} // Tampilkan dialog JoinClass
+          >
             +
           </button>
           {/* Notification Icon */}
@@ -77,10 +82,22 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
           alt="Smile"
           className="w-24 h-24 lg:w-36 lg:h-36 mb-4"
         />
-        <button className="px-4 py-2 lg:px-6 lg:py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-100">
+        <button
+          className="px-4 py-2 lg:px-6 lg:py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-100"
+          onClick={() => setIsJoinClassOpen(true)} // Tampilkan dialog JoinClass
+        >
           Join Class
         </button>
       </div>
+
+      {/* Dialog JoinClass */}
+      {isJoinClassOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-[400px]">
+            <JoinClass onClose={() => setIsJoinClassOpen(false)} /> {/* Render komponen JoinClass */}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
