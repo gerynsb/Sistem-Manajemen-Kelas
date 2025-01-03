@@ -22,39 +22,55 @@ const JoinClass = ({ onClose }: { onClose: () => void }) => {
       }
 
       const userId = user.uid;
+      const normalizedClassCode = classCode.trim().toLowerCase(); // Normalisasi ke huruf kecil
 
-      // Query ke koleksi Classes untuk mencari dokumen dengan field code yang sesuai
+      console.log("User ID:", userId);
+      console.log("Class Code Entered:", classCode);
+      console.log("Normalized Class Code:", normalizedClassCode);
+
+      // Debugging: Query seluruh dokumen di koleksi classes
+      const allclassesSnapshot = await getDocs(collection(db, "classes"));
+      console.log("All classes Data for Debugging:");
+      allclassesSnapshot.docs.forEach((doc) => {
+        console.log(`Class ID: ${doc.id}, Data:`, doc.data());
+      });
+
+      // Query spesifik dengan kode kelas
       const classesQuery = query(
-        collection(db, "Classes"),
-        where("code", "==", classCode)
+        collection(db, "classes"),
+        where("code", "==", normalizedClassCode)
       );
+
+      console.log("Executing query with code:", normalizedClassCode);
       const querySnapshot = await getDocs(classesQuery);
+      console.log("Query Snapshot Docs:", querySnapshot.docs.map((doc) => doc.data()));
 
       if (querySnapshot.empty) {
+        console.log("Class code not found in database.");
         throw new Error("Kode kelas tidak ditemukan.");
       }
 
-      // Ambil dokumen pertama yang sesuai dengan query
+      // Dokumen ditemukan
       const classDoc = querySnapshot.docs[0];
-      const classId = classDoc.id; // ID dokumen kelas
+      const classId = classDoc.id;
+      console.log("Found Class ID:", classId);
 
-      // Tambahkan userId ke field students di dokumen kelas
-      await updateDoc(doc(db, "Classes", classId), {
+      // Tambahkan user ke kelas
+      await updateDoc(doc(db, "classes", classId), {
         students: arrayUnion(userId),
       });
 
-      // Tambahkan classId ke field joinedClasses di dokumen user
+      // Tambahkan kelas ke user
       await updateDoc(doc(db, "users", userId), {
-        joinedClasses: arrayUnion(classId),
+        joinedclasses: arrayUnion(classId),
       });
 
       setMessageType("success");
-      setMessage(`Berhasil bergabung ke kelas dengan kode: ${classCode}`);
+      setMessage(`Berhasil bergabung ke kelas dengan kode: ${normalizedClassCode}`);
     } catch (error) {
+      console.error("Error during joining class:", error);
       setMessageType("error");
-      setMessage(
-        error instanceof Error ? error.message : "Terjadi kesalahan"
-      );
+      setMessage(error instanceof Error ? error.message : "Terjadi kesalahan");
     } finally {
       setLoading(false);
     }
