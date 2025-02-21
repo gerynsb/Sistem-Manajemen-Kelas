@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { auth, db } from "@/lib/firebase"; // Pastikan mengimpor auth dan db dari Firebase
-import { doc, updateDoc, arrayUnion, getDocs, collection, query, where } from "firebase/firestore"; // Import Firestore functions
+import { auth, db } from "@/lib/firebase"; 
+import { doc, updateDoc, arrayUnion, getDocs, collection, query, where } from "firebase/firestore";
 
-const JoinClass = ({ onClose }: { onClose: () => void }) => {
-  const [classCode, setClassCode] = useState(""); // State untuk kode kelas
-  const [message, setMessage] = useState(""); // State untuk pesan sukses/gagal
-  const [messageType, setMessageType] = useState<"success" | "error" | "">(""); // State untuk jenis pesan
-  const [loading, setLoading] = useState(false); // State untuk loading
+const JoinClass = ({ onClose, onJoinSuccess }: { onClose: () => void; onJoinSuccess: () => void }) => {
+  const [classCode, setClassCode] = useState(""); 
+  const [message, setMessage] = useState(""); 
+  const [messageType, setMessageType] = useState<"success" | "error" | "">("");
+  const [loading, setLoading] = useState(false); 
 
   const handleJoinClass = async () => {
     setLoading(true);
@@ -16,26 +16,18 @@ const JoinClass = ({ onClose }: { onClose: () => void }) => {
     setMessageType("");
 
     try {
-      const user = auth.currentUser; // Dapatkan user yang sedang login
+      const user = auth.currentUser; 
       if (!user) {
         throw new Error("Anda harus login untuk bergabung ke kelas.");
       }
 
       const userId = user.uid;
-      const normalizedClassCode = classCode.trim().toLowerCase(); // Normalisasi ke huruf kecil
+      const normalizedClassCode = classCode.trim().toLowerCase(); 
 
       console.log("User ID:", userId);
       console.log("Class Code Entered:", classCode);
       console.log("Normalized Class Code:", normalizedClassCode);
 
-      // Debugging: Query seluruh dokumen di koleksi classes
-      const allclassesSnapshot = await getDocs(collection(db, "classes"));
-      console.log("All classes Data for Debugging:");
-      allclassesSnapshot.docs.forEach((doc) => {
-        console.log(`Class ID: ${doc.id}, Data:`, doc.data());
-      });
-
-      // Query spesifik dengan kode kelas
       const classesQuery = query(
         collection(db, "classes"),
         where("code", "==", normalizedClassCode)
@@ -50,23 +42,24 @@ const JoinClass = ({ onClose }: { onClose: () => void }) => {
         throw new Error("Kode kelas tidak ditemukan.");
       }
 
-      // Dokumen ditemukan
       const classDoc = querySnapshot.docs[0];
       const classId = classDoc.id;
       console.log("Found Class ID:", classId);
 
-      // Tambahkan user ke kelas
       await updateDoc(doc(db, "classes", classId), {
         students: arrayUnion(userId),
       });
 
-      // Tambahkan kelas ke user
       await updateDoc(doc(db, "users", userId), {
         joinedclasses: arrayUnion(classId),
       });
 
       setMessageType("success");
       setMessage(`Berhasil bergabung ke kelas dengan kode: ${normalizedClassCode}`);
+
+      // 🔥 Panggil onJoinSuccess agar daftar kelas di-refresh
+      onJoinSuccess();
+
     } catch (error) {
       console.error("Error during joining class:", error);
       setMessageType("error");
@@ -78,7 +71,6 @@ const JoinClass = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <div className="text-black relative">
-      {/* Tanda X untuk Close */}
       <button
         onClick={onClose}
         className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold"

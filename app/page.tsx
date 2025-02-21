@@ -1,28 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getDoc, doc } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase"; // Pastikan mengimpor Firebase
+import { getDoc, doc, collection, query, where, getDocs } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase"; // Pastikan Firebase dikonfigurasi dengan benar
 import { onAuthStateChanged } from "firebase/auth";
 import JoinClass from "@/components/JoinClass";
 import ClassCard from "@/components/ClassCard";
-import AssignmentCard from "@/components/AssignmentCard"; // Import komponen yang diperlukan
+import AssignmentCard from "@/components/AssignmentCard";
 
 const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
-  const [name, setName] = useState("..."); // Default state untuk nama
-  const [isJoinClassOpen, setIsJoinClassOpen] = useState(false); // State untuk dialog JoinClass
-  const [joinclasses, setJoinClasses] = useState<any[]>([]); // State untuk kelas yang diikuti
-  const [loadingClasses, setLoadingClasses] = useState(true); // State untuk loading kelas
+  const [name, setName] = useState("...");
+  const [isJoinClassOpen, setIsJoinClassOpen] = useState(false);
+  const [joinclasses, setJoinClasses] = useState<any[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
+  const [loadingClasses, setLoadingClasses] = useState(true);
+  const [refresh, setRefresh] = useState(false);
 
-  // Fungsi untuk mengambil nama user dari Firestore
+  // Ambil nama user dari Firestore
   const fetchUserName = async (uid: string) => {
     try {
       const userDoc = await getDoc(doc(db, "users", uid));
       if (userDoc.exists()) {
-        setName(userDoc.data().name || "User"); // Set nama jika ada, fallback ke "User"
+        setName(userDoc.data().name || "User");
       } else {
-        console.warn("User document not found.");
-        setName("Guest"); // Default jika dokumen tidak ditemukan
+        setName("Guest");
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -30,41 +31,39 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
     }
   };
 
-  // Fungsi untuk mengambil data kelas yang diikuti
+  // Ambil kelas yang diikuti user dari Firestore
   const fetchJoinClasses = async (uid: string) => {
     try {
       const userDoc = await getDoc(doc(db, "users", uid));
-      if (userDoc.exists() && userDoc.data().joinclasses) {
-        const classIds = userDoc.data().joinclasses;
-
-        // Debugging: Tampilkan classIds
-        console.log("Class IDs from user data:", classIds);
-
-        // Filter nilai kosong sebelum diproses
-        const validClassIds = classIds.filter((classId: string) => {
-          if (!classId || classId.trim() === "") {
-            console.warn("Filtered out invalid classId:", classId);
-            return false;
-          }
-          return true;
-        });
-
+      if (userDoc.exists() && userDoc.data().joinedclasses) {
+        const classIds = userDoc.data().joinedclasses.filter((id: string) => id.trim() !== "");
+  
+        console.log("Class IDs from user data:", classIds); 
+        
         const classesData = await Promise.all(
-          validClassIds.map(async (classId: string) => {
+          classIds.map(async (classId: string) => {
             try {
               const classDoc = await getDoc(doc(db, "classes", classId));
-              return classDoc.exists() ? { id: classId, ...classDoc.data() } : null;
+              if (classDoc.exists()) {
+                console.log(`Fetched class data (${classId}):`, classDoc.data()); // Debugging
+                return { id: classId, ...classDoc.data() };
+              } else {
+                console.warn(`Class document ${classId} not found.`);
+                return null;
+              }
             } catch (error) {
               console.error(`Error fetching class data for ID ${classId}:`, error);
-              return null; // Skip invalid class data
+              return null;
             }
           })
         );
-
-        setJoinClasses(classesData.filter((cls) => cls)); // Filter null values
+  
+        const filteredClasses = classesData.filter((cls) => cls);
+        setJoinClasses(filteredClasses);
+        console.log("Final joined classes:", filteredClasses); // Debugging
       } else {
         console.warn("No joinclasses found for user.");
-        setJoinClasses([]); // Reset jika tidak ada kelas
+        setJoinClasses([]);
       }
     } catch (error) {
       console.error("Error fetching joinclasses:", error);
@@ -72,43 +71,62 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
       setLoadingClasses(false);
     }
   };
+  
 
-  // Listener untuk perubahan autentikasi
+  // Ambil assignments dari Firestore berdasarkan kelas yang diikuti
+  const fetchAssignments = async (classIds: string[]) => {
+    try {
+      if (classIds.length === 0) {
+        setAssignments([]);
+        return;
+      }
+
+      const assignmentsRef = collection(db, "assignments");
+      const q = query(assignmentsRef, where("classId", "in", classIds));
+      const querySnapshot = await getDocs(q);
+
+      const assignmentsData = querySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+      setAssignments(assignmentsData);
+    } catch (error) {
+      console.error("Error fetching assignments:", error);
+    }
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        fetchUserName(user.uid); // Ambil UID untuk fetch nama
-        fetchJoinClasses(user.uid); // Ambil kelas yang diikuti
+        fetchUserName(user.uid);
+        fetchJoinClasses(user.uid);
       } else {
-        setName("Guest"); // Default jika tidak ada user yang login
-        setJoinClasses([]); // Reset joinclasses
-        setLoadingClasses(false); // Selesai loading
+        setName("Guest");
+        setJoinClasses([]);
+        setAssignments([]);
+        setLoadingClasses(false);
       }
     });
 
-    return () => unsubscribe(); // Cleanup listener
-  }, []);
+    return () => unsubscribe();
+  }, [refresh]);
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F6FA]">
       {/* Header */}
       <header className="w-screen max-w-[1280px] flex items-center justify-between text-black px-8 py-4 border-b-2 border-black bg-[#F4F6FA]">
-        <h1 className="text-4xl font-bold">
-          {pageTitle || `Selamat Datang, ${name}`}
-        </h1>
+        <h1 className="text-4xl font-bold">{pageTitle || `Selamat Datang, ${name}`}</h1>
         <div className="flex items-center space-x-1">
-          {/* Button Add */}
           <button
             className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700"
             onClick={() => setIsJoinClassOpen(true)}
           >
             +
           </button>
-          {/* Notification Icon */}
           <button className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full hover:bg-gray-300">
             🔔
           </button>
-          {/* Profile and Log Out */}
           <div className="flex flex-col items-center bg-white border border-gray-200 rounded-2xl p-2 shadow-md">
             <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mb-1">
               👤
@@ -141,14 +159,16 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
         ) : (
           <div className="w-full max-w-4xl space-y-4">
             {joinclasses.map((cls) => (
-              <ClassCard
-                key={cls.id}
-                classId={cls.id}
-                name={cls.name}
-                desc={cls.desc}
-              />
+              <ClassCard key={cls.id} classId={cls.id} name={cls.name} desc={cls.desc} />
             ))}
-            <AssignmentCard />
+            {assignments.length > 0 && (
+              <div className="bg-blue-500 text-white p-4 rounded-lg shadow-md">
+                <h2 className="text-lg font-bold">Assignment</h2>
+                {assignments.map((assignment) => (
+                  <AssignmentCard key={assignment.id} assignment={assignment} />
+                ))}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -157,7 +177,10 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
       {isJoinClassOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-[400px]">
-            <JoinClass onClose={() => setIsJoinClassOpen(false)} />
+            <JoinClass 
+            onClose={() => setIsJoinClassOpen(false)} 
+            onJoinSuccess={() => setRefresh(prev => !prev)}
+            />
           </div>
         </div>
       )}
