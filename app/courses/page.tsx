@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { getDoc, doc, collection, getDocs } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase"; 
+import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import JoinClass from "@/components/JoinClass";
 import CoursesCard from "@/components/CoursesCard";
 import AssignmentCard from "@/components/AssignmentCard";
 
@@ -14,16 +15,32 @@ interface Course {
   courseTitle: string;
   description: string;
   instructor: string;
-  classTitle?: string; // Opsional karena diambil terpisah
+  classTitle?: string;
 }
 
 const CoursesPage = ({ pageTitle }: { pageTitle?: string }) => {
   const [name, setName] = useState("...");
+  const [isJoinClassOpen, setIsJoinClassOpen] = useState(false);
   const [courses, setCourses] = useState<Course[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Ambil nama user dari Firestore
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchUserName(user.uid);
+        fetchCourses();
+        fetchAssignments();
+      } else {
+        setName("Guest");
+        setCourses([]);
+        setAssignments([]);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   const fetchUserName = async (uid: string) => {
     try {
       const userDoc = await getDoc(doc(db, "users", uid));
@@ -38,14 +55,13 @@ const CoursesPage = ({ pageTitle }: { pageTitle?: string }) => {
     }
   };
 
-  // Ambil data courses dari Firestore
   const fetchCourses = async () => {
     try {
       const coursesSnapshot = await getDocs(collection(db, "courses"));
       let coursesData: Course[] = coursesSnapshot.docs.map((doc) => {
         const data = doc.data() as Course;
         return {
-          id: doc.id, // Pastikan ID diambil dari Firestore
+          id: doc.id,
           classId: data.classId,
           courseTitle: data.courseTitle,
           description: data.description,
@@ -53,7 +69,6 @@ const CoursesPage = ({ pageTitle }: { pageTitle?: string }) => {
         };
       });
 
-      // Ambil classTitle dari koleksi `classes` berdasarkan classId
       const classIds = [...new Set(coursesData.map((course) => course.classId))];
       const classDataMap: { [key: string]: string } = {};
 
@@ -73,7 +88,6 @@ const CoursesPage = ({ pageTitle }: { pageTitle?: string }) => {
         })
       );
 
-      // Gabungkan classTitle ke dalam coursesData
       coursesData = coursesData.map((course) => ({
         ...course,
         classTitle: classDataMap[course.classId] || "Unknown Class",
@@ -87,7 +101,6 @@ const CoursesPage = ({ pageTitle }: { pageTitle?: string }) => {
     }
   };
 
-  // Ambil data assignments dari Firestore
   const fetchAssignments = async () => {
     try {
       const assignmentsSnapshot = await getDocs(collection(db, "assignments"));
@@ -101,34 +114,24 @@ const CoursesPage = ({ pageTitle }: { pageTitle?: string }) => {
     }
   };
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        fetchUserName(user.uid);
-        fetchCourses();
-        fetchAssignments();
-      } else {
-        setName("Guest");
-        setCourses([]);
-        setAssignments([]);
-      }
-    });
-
-    return () => unsubscribe();
-  }, []);
-
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F6FA] overflow-auto">
       {/* Header */}
       <header className="w-full max-w-[1280px] flex items-center justify-between text-black px-8 py-4 border-b-2 border-black bg-[#F4F6FA]">
         <h1 className="text-4xl font-bold">{pageTitle || `Courses`}</h1>
         <div className="flex items-center space-x-1">
-          <button className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700">
+          {/* Tombol Tambah Kelas */}
+          <button
+            className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700"
+            onClick={() => setIsJoinClassOpen(true)}
+          >
             +
           </button>
-          <button className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full hover:bg-gray-300">
+                    {/* Notifikasi */}
+                    <button className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full hover:bg-gray-300">
             🔔
           </button>
+          {/* Profil & Logout */}
           <div className="flex flex-col items-center bg-white border border-gray-200 rounded-2xl p-2 shadow-md">
             <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mb-1">
               👤
@@ -154,7 +157,7 @@ const CoursesPage = ({ pageTitle }: { pageTitle?: string }) => {
                 <CoursesCard
                   key={course.id}
                   courseTitle={course.courseTitle}
-                  classTitle={course.classTitle || "Unknown Class"} // Nama kelas dari Firestore
+                  classTitle={course.classTitle || "Unknown Class"}
                   instructor={course.instructor}
                   description={course.description}
                 />
@@ -177,6 +180,29 @@ const CoursesPage = ({ pageTitle }: { pageTitle?: string }) => {
           </div>
         </div>
       </div>
+
+      {/* 🔹 MODAL JOIN CLASS */}
+      {isJoinClassOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setIsJoinClassOpen(false)}
+        >
+          <div
+            className="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-[400px] relative pointer-events-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Tombol Close (❌) */}
+            <button
+              onClick={() => setIsJoinClassOpen(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold"
+            >
+            </button>
+
+            {/* Komponen JoinClass */}
+            <JoinClass onClose={() => setIsJoinClassOpen(false)} onJoinSuccess={() => {}} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
