@@ -6,22 +6,11 @@ import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import AssignmentPageCard from "@/components/AssignmentPageCard";
 
-interface AssignmentData {
-  id: string;
-  title: string;
-  description: string;
-  isSubmitted?: boolean;
-  dueDate: any; // Firestore Timestamp
-  classId?: string;
-  classTitle?: string;
-}
-
 const AssignmentPage = ({ pageTitle }: { pageTitle?: string }) => {
   const [name, setName] = useState("...");
-  const [assignments, setAssignments] = useState<AssignmentData[]>([]);
+  const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Ambil nama user dari Firestore
   const fetchUserName = async (uid: string) => {
     try {
       const userDoc = await getDoc(doc(db, "users", uid));
@@ -36,37 +25,56 @@ const AssignmentPage = ({ pageTitle }: { pageTitle?: string }) => {
     }
   };
 
-  // Ambil data assignments dari Firestore
   const fetchAssignments = async () => {
     try {
       const assignmentsSnapshot = await getDocs(collection(db, "assignments"));
-      let assignmentsData: AssignmentData[] = assignmentsSnapshot.docs.map((docSnap) => ({
-        id: docSnap.id,
-        ...(docSnap.data() as Omit<AssignmentData, "id">),
-      }));
+      let assignmentsData = assignmentsSnapshot.docs.map((doc) => {
+        const rawData = doc.data();
 
-      // Kumpulkan semua classId yang ada di assignment
-      const classIds = [...new Set(assignmentsData.map((a) => a.classId).filter(Boolean))] as string[];
-      const classMap: Record<string, string> = {};
+        // 🔥 Ambil title dengan key yang mungkin salah formatnya (punya spasi)
+        const titleKey = Object.keys(rawData).find((key) => key.trim() === "title") || "title";
+        const title = rawData[titleKey] || "Untitled Assignment";
 
-      // Ambil nama kelas berdasarkan classId
+        return {
+          id: doc.id,
+          classId: rawData.classId || "Unknown",
+          title,
+          description: rawData.description || "Tidak ada deskripsi.",
+          dueDate: rawData.dueDate?.seconds
+            ? new Date(rawData.dueDate.seconds * 1000).toLocaleDateString("id-ID", {
+                weekday: "long",
+                day: "2-digit",
+                month: "long",
+                year: "numeric",
+              })
+            : "Tanggal Tidak Diketahui",
+          isSubmitted: rawData.isSubmitted || false,
+        };
+      });
+
+      const classIds = [...new Set(assignmentsData.map((a) => a.classId))];
+      const classDataMap: { [key: string]: string } = {};
+
       await Promise.all(
-        classIds.map(async (cId) => {
-          if (!cId) return;
-          const classDocSnap = await getDoc(doc(db, "classes", cId));
-          if (classDocSnap.exists()) {
-            const classData = classDocSnap.data();
-            classMap[cId] = classData.name || "Unknown Class";
-          } else {
-            classMap[cId] = "Unknown Class";
+        classIds.map(async (classId) => {
+          if (classId === "Unknown") return;
+          try {
+            const classDoc = await getDoc(doc(db, "classes", classId));
+            if (classDoc.exists()) {
+              classDataMap[classId] = classDoc.data().name;
+            } else {
+              classDataMap[classId] = "Kelas Tidak Diketahui";
+            }
+          } catch (error) {
+            console.error(`Error fetching class data for ${classId}:`, error);
+            classDataMap[classId] = "Error Fetching";
           }
         })
       );
 
-      // Ganti classId dengan classTitle
       assignmentsData = assignmentsData.map((assignment) => ({
         ...assignment,
-        classTitle: assignment.classId ? classMap[assignment.classId] : "Unknown Class",
+        classTitle: classDataMap[assignment.classId] || "Kelas Tidak Diketahui",
       }));
 
       setAssignments(assignmentsData);
@@ -85,7 +93,6 @@ const AssignmentPage = ({ pageTitle }: { pageTitle?: string }) => {
       } else {
         setName("Guest");
         setAssignments([]);
-        setLoading(false);
       }
     });
 
@@ -94,7 +101,6 @@ const AssignmentPage = ({ pageTitle }: { pageTitle?: string }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F6FA] overflow-auto">
-      {/* Header */}
       <header className="w-full max-w-[1280px] flex items-center justify-between text-black px-8 py-4 border-b-2 border-black bg-[#F4F6FA]">
         <h1 className="text-4xl font-bold">{pageTitle || `Assignment`}</h1>
         <div className="flex items-center space-x-1">
@@ -115,41 +121,24 @@ const AssignmentPage = ({ pageTitle }: { pageTitle?: string }) => {
         </div>
       </header>
 
-      {/* Main Content */}
-      <div className="flex flex-1 px-4 pt-6 lg:flex-row flex-col max-w-[1280px] mx-auto space-x-4">
-        {/* Assignments Section */}
+      <div className="flex flex-col px-8 pt-6 max-w-[1280px] mx-auto space-y-4 w-full">
         <div className="flex-1">
           {loading ? (
             <p>Loading assignments...</p>
           ) : assignments.length === 0 ? (
             <p>No assignments available.</p>
           ) : (
-            <div className="space-y-4 mb-4">
-              {assignments.map((assignment) => {
-                // Konversi dueDate Firestore Timestamp -> string
-                let dueDateStr = "Unknown Date";
-                if (assignment.dueDate && assignment.dueDate.seconds) {
-                  dueDateStr = new Date(assignment.dueDate.seconds * 1000).toLocaleDateString("id-ID", {
-                    weekday: "long",
-                    day: "2-digit",
-                    month: "long",
-                    year: "numeric",
-                  });
-                }
-
-                const status = assignment.isSubmitted ? "Terkumpul" : "Belum Dikumpulkan";
-
-                return (
-                  <AssignmentPageCard
-                    key={assignment.id}
-                    title={assignment.title} // 🔥 Judul Tugas Ditampilkan
-                    status={status}
-                    classTitle={assignment.classTitle || "Unknown Class"}
-                    dueDate={dueDateStr}
-                    description={assignment.description}
-                  />
-                );
-              })}
+            <div className="space-y-4 w-full">
+              {assignments.map((assignment) => (
+                <AssignmentPageCard
+                  key={assignment.id}
+                  title={assignment.title}
+                  status={assignment.isSubmitted ? "Terkumpul" : "Belum Dikumpulkan"}
+                  classTitle={assignment.classTitle}
+                  dueDate={assignment.dueDate}
+                  description={assignment.description}
+                />
+              ))}
             </div>
           )}
         </div>
