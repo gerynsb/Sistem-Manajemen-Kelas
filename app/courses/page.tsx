@@ -164,7 +164,7 @@ const CoursesPage = ({ pageTitle }: { pageTitle?: string }) => {
         </div>
 
         {/* Assignment Section */}
-        <div className="w-full lg:w-[30%]">
+        <div className="w-full lg:w-[30%] mb-2">
           <div className="bg-blue-500 text-white p-4 rounded-lg shadow-md">
             <h2 className="text-lg font-bold">Assignment</h2>
             {assignments.length > 0 ? (
