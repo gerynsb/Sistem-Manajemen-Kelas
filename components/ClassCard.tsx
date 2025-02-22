@@ -15,7 +15,7 @@ const ClassCard = ({
           href={`/classes/${classId}`}
           className="text-blue-500 hover:underline mt-2 block"
         >
-          Lihat Selengkapnya
+          Lihat Selengkapnya →
         </a>
       </div>
     );

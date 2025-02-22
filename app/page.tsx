@@ -126,15 +126,21 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
       <header className="w-full max-w-[1280px] flex items-center justify-between text-black px-8 py-4 border-b-2 border-black bg-[#F4F6FA]">
         <h1 className="text-4xl font-bold">{pageTitle || `Selamat Datang, ${name}`}</h1>
         <div className="flex items-center space-x-1">
+          {/* Tombol Tambah Kelas */}
           <button
             className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700"
-            onClick={() => setIsJoinClassOpen(true)}
+            onClick={() => {
+              console.log("Tombol + ditekan");
+              setIsJoinClassOpen(true);
+            }}
           >
             +
           </button>
+          {/* Notifikasi */}
           <button className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full hover:bg-gray-300">
             🔔
           </button>
+          {/* Profil & Logout */}
           <div className="flex flex-col items-center bg-white border border-gray-200 rounded-2xl p-2 shadow-md">
             <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mb-1">
               👤
@@ -185,6 +191,30 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
           </div>
         </div>
       </div>
+
+      {/* 🔹 MODAL JOIN CLASS */}
+      {isJoinClassOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={() => setIsJoinClassOpen(false)} // 🔥 Tutup modal jika klik di luar modal
+        >
+          <div
+            className="bg-white p-6 rounded-lg shadow-lg w-[90%] max-w-[400px] relative pointer-events-auto"
+            onClick={(e) => e.stopPropagation()} // 🔥 Mencegah modal tertutup saat diklik di dalam
+          >
+            {/* Tombol Close (❌) */}
+            <button
+              onClick={() => setIsJoinClassOpen(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 text-xl font-bold"
+            >
+            </button>
+
+            {/* Komponen JoinClass */}
+            <JoinClass onClose={() => setIsJoinClassOpen(false)} onJoinSuccess={() => {}} />
+          </div>
+        </div>
+      )}
+
     </div>
   );
 };
