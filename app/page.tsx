@@ -173,7 +173,7 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
 
         {/* Assignment Section */}
         <div className="w-full lg:w-[30%]">
-          <div className="bg-blue-500 text-white p-4 rounded-lg shadow-md overflow-auto max-h-[500px]">
+          <div className="bg-blue-500 text-white p-4 rounded-lg shadow-md overflow-auto">
             <h2 className="text-lg font-bold">Assignment</h2>
             {assignments.length > 0 ? (
               assignments.map((assignment) => (
