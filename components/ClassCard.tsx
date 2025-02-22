@@ -8,8 +8,8 @@ const ClassCard = ({
     desc: string;
   }) => {
     return (
-      <div className="border p-4 rounded shadow bg-white">
-        <h3 className="text-lg font-bold">{name}</h3>
+      <div className="border p-4 rounded-lg shadow bg-white">
+        <h1 className="text-2xl font-bold text-black mb-4">{name}</h1>
         <p className="text-gray-600">{desc}</p>
         <a
           href={`/classes/${classId}`}

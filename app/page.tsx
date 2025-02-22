@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { getDoc, doc, collection, query, where, getDocs } from "firebase/firestore";
-import { auth, db } from "@/lib/firebase"; // Pastikan Firebase dikonfigurasi dengan benar
+import { auth, db } from "@/lib/firebase"; 
 import { onAuthStateChanged } from "firebase/auth";
 import JoinClass from "@/components/JoinClass";
 import ClassCard from "@/components/ClassCard";
@@ -16,7 +16,6 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
   const [loadingClasses, setLoadingClasses] = useState(true);
   const [refresh, setRefresh] = useState(false);
 
-  // Ambil nama user dari Firestore
   const fetchUserName = async (uid: string) => {
     try {
       const userDoc = await getDoc(doc(db, "users", uid));
@@ -31,21 +30,20 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
     }
   };
 
-  // Ambil kelas yang diikuti user dari Firestore
   const fetchJoinClasses = async (uid: string) => {
     try {
       const userDoc = await getDoc(doc(db, "users", uid));
       if (userDoc.exists() && userDoc.data().joinedclasses) {
         const classIds = userDoc.data().joinedclasses.filter((id: string) => id.trim() !== "");
-  
-        console.log("Class IDs from user data:", classIds); 
-        
+
+        console.log("Class IDs from user data:", classIds);
+
         const classesData = await Promise.all(
           classIds.map(async (classId: string) => {
             try {
               const classDoc = await getDoc(doc(db, "classes", classId));
               if (classDoc.exists()) {
-                console.log(`Fetched class data (${classId}):`, classDoc.data()); // Debugging
+                console.log(`Fetched class data (${classId}):`, classDoc.data());
                 return { id: classId, ...classDoc.data() };
               } else {
                 console.warn(`Class document ${classId} not found.`);
@@ -57,10 +55,14 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
             }
           })
         );
-  
+
         const filteredClasses = classesData.filter((cls) => cls);
         setJoinClasses(filteredClasses);
-        console.log("Final joined classes:", filteredClasses); // Debugging
+        console.log("Final joined classes:", filteredClasses);
+
+        if (filteredClasses.length > 0) {
+          await fetchAssignments(classIds);
+        }
       } else {
         console.warn("No joinclasses found for user.");
         setJoinClasses([]);
@@ -71,9 +73,7 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
       setLoadingClasses(false);
     }
   };
-  
 
-  // Ambil assignments dari Firestore berdasarkan kelas yang diikuti
   const fetchAssignments = async (classIds: string[]) => {
     try {
       if (classIds.length === 0) {
@@ -127,50 +127,47 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
           <button className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full hover:bg-gray-300">
             🔔
           </button>
-          <div className="flex flex-col items-center bg-white border border-gray-200 rounded-2xl p-2 shadow-md">
-            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mb-1">
-              👤
-            </div>
-            <button className="flex items-center justify-center px-4 py-1 bg-blue-600 text-white text-xs font-medium rounded-full hover:bg-blue-700">
-              Log Out
-            </button>
-          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="flex flex-1 flex-col items-center justify-center px-4">
-        {loadingClasses ? (
-          <p>Loading classes...</p>
-        ) : joinclasses.length === 0 ? (
-          <>
-            <img
-              src="/smile.png"
-              alt="Smile"
-              className="w-24 h-24 lg:w-36 lg:h-36 mb-4"
-            />
-            <button
-              className="px-4 py-2 lg:px-6 lg:py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-100"
-              onClick={() => setIsJoinClassOpen(true)}
-            >
-              Join Class
-            </button>
-          </>
-        ) : (
-          <div className="w-full max-w-4xl space-y-4">
-            {joinclasses.map((cls) => (
-              <ClassCard key={cls.id} classId={cls.id} name={cls.name} desc={cls.desc} />
-            ))}
-            {assignments.length > 0 && (
-              <div className="bg-blue-500 text-white p-4 rounded-lg shadow-md">
-                <h2 className="text-lg font-bold">Assignment</h2>
-                {assignments.map((assignment) => (
-                  <AssignmentCard key={assignment.id} assignment={assignment} />
-                ))}
-              </div>
+      <div className="flex flex-1 px-4 pt-6 lg:flex-row flex-col max-w-[1280px] mx-auto space-x-4">
+        {/* Kelas yang diikuti */}
+        <div className="flex-1">
+          {loadingClasses ? (
+            <p>Loading classes...</p>
+          ) : joinclasses.length === 0 ? (
+            <div className="flex flex-col items-center">
+              <img src="/smile.png" alt="Smile" className="w-24 h-24 lg:w-36 lg:h-36 mb-4" />
+              <button
+                className="px-4 py-2 lg:px-6 lg:py-2 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-100"
+                onClick={() => setIsJoinClassOpen(true)}
+              >
+                Join Class
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4 mr-4 lg:mr-4">
+              {joinclasses.map((cls) => (
+                <ClassCard key={cls.id} classId={cls.id} name={cls.name} desc={cls.desc} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Assignment Section */}
+        <div className="w-full lg:w-[30%]">
+          <div className="bg-blue-500 text-white p-4 rounded-lg shadow-md">
+            <h2 className="text-lg font-bold">Assignment</h2>
+            {assignments.length > 0 ? (
+              assignments.map((assignment) => (
+                <AssignmentCard key={assignment.id} assignment={assignment} />
+              ))
+            ) : (
+              <p className="text-sm">Belum ada tugas yang diberikan</p>
             )}
           </div>
-        )}
+        </div>
       </div>
 
       {/* Dialog JoinClass */}
