@@ -18,8 +18,7 @@ const ClassDetailPage = () => {
       try {
         const classDoc = await getDoc(doc(db, "classes", id));
         if (classDoc.exists()) {
-          setClassData(classDoc.data());
-        } else {
+          setClassData(classDoc.data());         } else {
           console.warn("Class not found");
         }
       } catch (error) {
