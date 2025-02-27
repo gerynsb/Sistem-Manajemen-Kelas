@@ -43,7 +43,7 @@ const ClassPage = () => {
 
   return (
     <div className="min-h-screen bg-[#F4F6FA] px-8 py-6">
-      <h1 className="text-4xl font-bold">{classData.name || "Kelas Tidak Diketahui"}</h1>
+      <h1 className="text-black text-4xl font-bold">{classData.name || "Kelas Tidak Diketahui"}</h1>
 
       {/* TAB NAVIGATION */}
       <div className="mt-4 border-b border-gray-300">
