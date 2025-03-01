@@ -7,6 +7,11 @@ import { onAuthStateChanged } from "firebase/auth";
 import JoinClass from "@/components/JoinClass";
 import CoursesCard from "@/components/CoursesCard";
 import AssignmentCard from "@/components/AssignmentCard";
+import Header from "@/components/Header";
+
+<button className="flex items-center justify-center px-4 py-1 bg-blue-600 text-white text-xs font-medium rounded-full hover:bg-blue-700">
+Log Out
+</button>
 
 // Interface untuk TypeScript
 interface Course {
@@ -117,31 +122,7 @@ const CoursesPage = ({ pageTitle }: { pageTitle?: string }) => {
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F6FA] overflow-auto">
       {/* Header */}
-      <header className="w-full max-w-[1280px] flex items-center justify-between text-black px-8 py-4 border-b-2 border-black bg-[#F4F6FA]">
-        <h1 className="text-4xl font-bold">{pageTitle || `Courses`}</h1>
-        <div className="flex items-center space-x-1">
-          {/* Tombol Tambah Kelas */}
-          <button
-            className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700"
-            onClick={() => setIsJoinClassOpen(true)}
-          >
-            +
-          </button>
-                    {/* Notifikasi */}
-                    <button className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full hover:bg-gray-300">
-            🔔
-          </button>
-          {/* Profil & Logout */}
-          <div className="flex flex-col items-center bg-white border border-gray-200 rounded-2xl p-2 shadow-md">
-            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mb-1">
-              👤
-            </div>
-            <button className="flex items-center justify-center px-4 py-1 bg-blue-600 text-white text-xs font-medium rounded-full hover:bg-blue-700">
-              Log Out
-            </button>
-          </div>
-        </div>
-      </header>
+      <Header pageTitle="Courses" />
 
       {/* Main Content */}
       <div className="flex flex-1 px-4 pt-6 lg:flex-row flex-col max-w-[1280px] mx-auto space-x-4">
