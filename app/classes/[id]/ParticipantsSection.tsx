@@ -31,7 +31,7 @@ const ParticipantsSection = ({ classId }: { classId: string }) => {
           <div key={participant.id} className="p-4 bg-gray-100 rounded-lg mt-2 flex justify-between">
             <div className="flex items-center">
               <div className="w-10 h-10 bg-gray-300 rounded-full mr-2"></div>
-              <p className="font-bold">{participant.name}</p>
+              <p className="font-bold text-black">{participant.name}</p>
             </div>
             <p className="text-sm text-gray-500">{participant.role || "Siswa"}</p>
           </div>
