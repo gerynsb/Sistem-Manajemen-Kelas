@@ -111,7 +111,6 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
       await fetchJoinClasses(user.uid);
     }
   };
-  
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -159,19 +158,21 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
           )}
         </div>
 
-        {/* Assignment Section */}
-        <div className="w-full lg:w-[30%]">
-          <div className="bg-blue-500 text-white p-4 rounded-lg shadow-md overflow-auto">
-            <h2 className="text-lg font-bold">Assignment</h2>
-            {assignments.length > 0 ? (
-              assignments.map((assignment) => (
-                <AssignmentCard key={assignment.id} assignment={assignment} />
-              ))
-            ) : (
-              <p className="text-sm">Belum ada tugas yang diberikan</p>
-            )}
+        {/* 🔥 Assignment Section hanya muncul jika ada kelas */}
+        {joinclasses.length > 0 && (
+          <div className="w-full lg:w-[30%]">
+            <div className="bg-blue-500 text-white p-4 rounded-lg shadow-md overflow-auto">
+              <h2 className="text-lg font-bold">Assignment</h2>
+              {assignments.length > 0 ? (
+                assignments.map((assignment) => (
+                  <AssignmentCard key={assignment.id} assignment={assignment} />
+                ))
+              ) : (
+                <p className="text-sm">Belum ada tugas yang diberikan</p>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* 🔹 MODAL JOIN CLASS */}
@@ -196,7 +197,6 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
           </div>
         </div>
       )}
-
     </div>
   );
 };

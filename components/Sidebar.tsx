@@ -2,16 +2,18 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { collection, getDocs, getDoc, doc } from "firebase/firestore";
+import { auth, db } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 const Sidebar = () => {
-  const [menuActive, setMenuActive] = useState("Home"); // State menu aktif
-  const [dropdownOpen, setDropdownOpen] = useState(false); // State dropdown
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // State sidebar (default terbuka)
-  const [classes, setClasses] = useState<any[]>([]); // State daftar kelas dari Firebase
+  const [menuActive, setMenuActive] = useState("Home"); // Menu aktif
+  const [dropdownOpen, setDropdownOpen] = useState(false); // Dropdown daftar kelas
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Sidebar terbuka/tutup
+  const [joinedClasses, setJoinedClasses] = useState<any[]>([]); // Daftar kelas yang diikuti pengguna
   const router = useRouter(); // Hook untuk navigasi
 
+  // 🔥 Handle responsive sidebar
   useEffect(() => {
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
@@ -27,28 +29,47 @@ const Sidebar = () => {
     };
   }, []);
 
-  // 🔥 Mengambil daftar kelas dari Firebase
+  // 🔥 Ambil daftar kelas yang telah diikuti pengguna dari Firestore
   useEffect(() => {
-    const fetchClasses = async () => {
+    const fetchJoinedClasses = async (uid: string) => {
       try {
-        const querySnapshot = await getDocs(collection(db, "classes"));
-        const classData = querySnapshot.docs.map((doc) => ({
-          id: doc.id,
-          name: doc.data().name || "Kelas Tanpa Nama",
-        }));
-        setClasses(classData);
+        const userDoc = await getDoc(doc(db, "users", uid));
+        if (userDoc.exists() && userDoc.data().joinedclasses) {
+          const classIds = userDoc.data().joinedclasses;
+
+          const classPromises = classIds.map(async (classId: string) => {
+            const classDoc = await getDoc(doc(db, "classes", classId));
+            if (classDoc.exists()) {
+              return { id: classId, name: classDoc.data().name || "Kelas Tanpa Nama" };
+            }
+            return null;
+          });
+
+          const classList = (await Promise.all(classPromises)).filter((cls) => cls !== null);
+          setJoinedClasses(classList);
+        } else {
+          setJoinedClasses([]);
+        }
       } catch (error) {
-        console.error("Error fetching classes:", error);
+        console.error("Error fetching joined classes:", error);
       }
     };
 
-    fetchClasses();
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        fetchJoinedClasses(user.uid);
+      } else {
+        setJoinedClasses([]);
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const handleNavigation = (name: string, path: string) => {
-    setMenuActive(name); // Set menu aktif
+    setMenuActive(name);
     if (path !== "#") {
-      router.push(path); // Navigasi ke halaman
+      router.push(path);
     }
     if (window.innerWidth < 1024) {
       setIsSidebarOpen(false); // Tutup sidebar setelah navigasi di mobile
@@ -94,23 +115,23 @@ const Sidebar = () => {
             ))}
 
             {/* Dropdown Daftar Kelas */}
-            <li>
-              <div
-                onClick={() => setDropdownOpen(!dropdownOpen)}
-                className={`flex items-center justify-between px-4 py-2 space-x-4 text-gray-700 hover:text-blue-600 hover:bg-blue-100 rounded-md cursor-pointer ${
-                  menuActive === "Daftar Kelas" ? "bg-blue-100" : ""
-                }`}
-              >
-                <div className="flex items-center space-x-4">
-                  <span>{dropdownOpen ? "▼" : "▲"}</span>
-                  <span className="text-xl">📚</span>
-                  <span>Daftar Kelas</span>
+            {joinedClasses.length > 0 && (
+              <li>
+                <div
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className={`flex items-center justify-between px-4 py-2 space-x-4 text-gray-700 hover:text-blue-600 hover:bg-blue-100 rounded-md cursor-pointer ${
+                    menuActive === "Daftar Kelas" ? "bg-blue-100" : ""
+                  }`}
+                >
+                  <div className="flex items-center space-x-4">
+                    <span>{dropdownOpen ? "▼" : "▲"}</span>
+                    <span className="text-xl">📚</span>
+                    <span>Daftar Kelas</span>
+                  </div>
                 </div>
-              </div>
-              {dropdownOpen && (
-                <ul className="ml-2 mt-2 space-y-2 text-sm">
-                  {classes.length > 0 ? (
-                    classes.map((kelas) => (
+                {dropdownOpen && (
+                  <ul className="ml-2 mt-2 space-y-2 text-sm">
+                    {joinedClasses.map((kelas) => (
                       <li
                         key={kelas.id}
                         onClick={() => handleNavigation(kelas.name, `/classes/${kelas.id}`)}
@@ -122,13 +143,11 @@ const Sidebar = () => {
                       >
                         <span>{kelas.name}</span>
                       </li>
-                    ))
-                  ) : (
-                    <p className="text-gray-500 px-4 py-2">Tidak ada kelas</p>
-                  )}
-                </ul>
-              )}
-            </li>
+                    ))}
+                  </ul>
+                )}
+              </li>
+            )}
           </ul>
         </div>
 
