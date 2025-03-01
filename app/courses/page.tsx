@@ -9,10 +9,6 @@ import CoursesCard from "@/components/CoursesCard";
 import AssignmentCard from "@/components/AssignmentCard";
 import Header from "@/components/Header";
 
-<button className="flex items-center justify-center px-4 py-1 bg-blue-600 text-white text-xs font-medium rounded-full hover:bg-blue-700">
-Log Out
-</button>
-
 // Interface untuk TypeScript
 interface Course {
   id: string;
@@ -29,6 +25,14 @@ const CoursesPage = ({ pageTitle }: { pageTitle?: string }) => {
   const [courses, setCourses] = useState<Course[]>([]);
   const [assignments, setAssignments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // 🔥 Fungsi untuk refresh daftar courses setelah join kelas
+  const refreshJoinClasses = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      await fetchCourses(); // Memanggil ulang daftar courses setelah join kelas
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -122,7 +126,7 @@ const CoursesPage = ({ pageTitle }: { pageTitle?: string }) => {
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F6FA] overflow-auto">
       {/* Header */}
-      <Header pageTitle="Courses" />
+      <Header pageTitle={`Selamat Datang, ${name}`} onJoinSuccess={refreshJoinClasses} />
 
       {/* Main Content */}
       <div className="flex flex-1 px-4 pt-6 lg:flex-row flex-col max-w-[1280px] mx-auto space-x-4">
@@ -180,7 +184,7 @@ const CoursesPage = ({ pageTitle }: { pageTitle?: string }) => {
             </button>
 
             {/* Komponen JoinClass */}
-            <JoinClass onClose={() => setIsJoinClassOpen(false)} onJoinSuccess={() => {}} />
+            <JoinClass onClose={() => setIsJoinClassOpen(false)} onJoinSuccess={refreshJoinClasses} />
           </div>
         </div>
       )}

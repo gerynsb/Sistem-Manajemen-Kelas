@@ -86,6 +86,11 @@ const AssignmentPage = ({ pageTitle }: { pageTitle?: string }) => {
     }
   };
 
+  // ✅ Perbaikan: Hanya memanggil ulang fetchAssignments, bukan fetchCourses
+  const refreshAssignments = async () => {
+    await fetchAssignments();
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -102,7 +107,7 @@ const AssignmentPage = ({ pageTitle }: { pageTitle?: string }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F6FA] overflow-auto">
-      <Header pageTitle="Courses" />
+      <Header pageTitle={`Selamat Datang, ${name}`} onJoinSuccess={refreshAssignments} />
 
       <div className="flex flex-col px-8 pt-6 max-w-[1280px] mx-auto space-y-4 w-full">
         <div className="flex-1">

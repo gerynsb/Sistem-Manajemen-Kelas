@@ -105,6 +105,14 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
     }
   };
 
+  const refreshJoinClasses = async () => {
+    const user = auth.currentUser;
+    if (user) {
+      await fetchJoinClasses(user.uid);
+    }
+  };
+  
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -124,7 +132,7 @@ const HomePage = ({ pageTitle }: { pageTitle?: string }) => {
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F6FA] overflow-auto">
       {/* Header */}
-      <Header pageTitle={`Selamat Datang, ${name}`} />
+      <Header pageTitle={`Selamat Datang, ${name}`} onJoinSuccess={() => refreshJoinClasses()} />
 
       {/* Main Content */}
       <div className="flex flex-1 px-4 pt-6 lg:flex-row flex-col max-w-[1280px] mx-auto space-x-4 overflow-auto">
