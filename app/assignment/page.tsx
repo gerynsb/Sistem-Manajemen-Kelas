@@ -5,6 +5,7 @@ import { getDoc, doc, collection, getDocs } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import AssignmentPageCard from "@/components/AssignmentPageCard";
+import Header from "@/components/Header";
 
 const AssignmentPage = ({ pageTitle }: { pageTitle?: string }) => {
   const [name, setName] = useState("...");
@@ -101,25 +102,7 @@ const AssignmentPage = ({ pageTitle }: { pageTitle?: string }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F4F6FA] overflow-auto">
-      <header className="w-full max-w-[1280px] flex items-center justify-between text-black px-8 py-4 border-b-2 border-black bg-[#F4F6FA]">
-        <h1 className="text-4xl font-bold">{pageTitle || `Assignment`}</h1>
-        <div className="flex items-center space-x-1">
-          <button className="w-10 h-10 flex items-center justify-center bg-blue-600 text-white rounded-full hover:bg-blue-700">
-            +
-          </button>
-          <button className="w-10 h-10 flex items-center justify-center bg-gray-200 rounded-full hover:bg-gray-300">
-            🔔
-          </button>
-          <div className="flex flex-col items-center bg-white border border-gray-200 rounded-2xl p-2 shadow-md">
-            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center mb-1">
-              👤
-            </div>
-            <button className="flex items-center justify-center px-4 py-1 bg-blue-600 text-white text-xs font-medium rounded-full hover:bg-blue-700">
-              Log Out
-            </button>
-          </div>
-        </div>
-      </header>
+      <Header pageTitle="Courses" />
 
       <div className="flex flex-col px-8 pt-6 max-w-[1280px] mx-auto space-y-4 w-full">
         <div className="flex-1">
