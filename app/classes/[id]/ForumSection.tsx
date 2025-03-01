@@ -45,7 +45,7 @@ const ForumSection = ({ classId }: { classId: string }) => {
 
     fetchPosts();
   }, [classId]);
-
+  
   // 🔥 Fungsi untuk memposting ke forum
   const handlePostSubmit = async () => {
     if (!postText.trim()) {

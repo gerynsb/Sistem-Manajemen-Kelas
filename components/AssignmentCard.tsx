@@ -5,9 +5,7 @@ import Link from "next/link";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-
 const AssignmentCard = ({ assignment }: { assignment: any }) => {
-  // Pastikan title tidak undefined
   console.log("🔥 Debug Assignment Data:", assignment);
 
   const [className, setClassName] = useState("Memuat...");
@@ -39,8 +37,8 @@ const AssignmentCard = ({ assignment }: { assignment: any }) => {
   if (assignment.dueDate) {
     try {
       const dueDate = assignment.dueDate.toDate
-        ? assignment.dueDate.toDate() // Jika dari Firestore Timestamp
-        : new Date(assignment.dueDate); // Jika dalam format string atau milisecond
+        ? assignment.dueDate.toDate()
+        : new Date(assignment.dueDate);
       formattedDate = dueDate.toLocaleDateString();
     } catch (error) {
       console.error("Error formatting dueDate:", error);
@@ -50,13 +48,16 @@ const AssignmentCard = ({ assignment }: { assignment: any }) => {
   const status = assignment.status || (assignment.isSubmitted ? "Terkumpul" : "Belum Dikumpulkan");
 
   return (
-    <div className=" text-white p-4 mt-2">
-      <p className={`text-xs font-semibold mb-2 ${status === "Terkumpul" ? "text-white-600" : "text-white-600"}`}>{status}</p>
+    <div className="text-white p-4 mt-2">
+      <p className={`text-xs font-semibold mb-2 ${status === "Terkumpul" ? "text-white-600" : "text-white-600"}`}>
+        {status}
+      </p>
       <h3 className="text-xl">{className}</h3>
       <h3 className="text-2xl">{title}</h3>
-      {/* <p className="text-sm">{assignment.description}</p> */}
       <p className="text-xs mt-2 text-white-500">Deadline: {formattedDate}</p>
-      <Link href={`/class/${assignment.classId}/task/${assignment.id}`} passHref>
+
+      {/* ✅ Perbaikan Path ke Halaman Tugas */}
+      <Link href={`/classes/${assignment.classId}`} passHref>
         <p className="text-blue-200 hover:underline text-sm mt-2 cursor-pointer">
           Lihat Selengkapnya →
         </p>
