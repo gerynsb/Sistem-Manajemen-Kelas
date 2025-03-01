@@ -52,7 +52,7 @@ const AssignmentsSection = ({ classId }: { classId: string }) => {
     try {
       const fileUrl = await uploadToCloudinary(file);
       if (!fileUrl) {
-        alert("Gagal mengunggah file!");
+        alert("Gagal mengunggah file! Periksa konfigurasi Cloudinary.");
         setUploading(null);
         return;
       }
@@ -60,10 +60,9 @@ const AssignmentsSection = ({ classId }: { classId: string }) => {
       // ✅ Update tugas di Firebase setelah file diunggah
       await updateDoc(doc(db, "assignments", assignmentId), {
         fileUrl,
-        isSubmitted: true, // Menandai tugas sebagai terkumpul
+        isSubmitted: true,
       });
-
-      // ✅ Perbarui state UI setelah sukses unggah
+  
       setAssignments((prev) =>
         prev.map((assignment) =>
           assignment.id === assignmentId ? { ...assignment, fileUrl, isSubmitted: true } : assignment
@@ -78,6 +77,7 @@ const AssignmentsSection = ({ classId }: { classId: string }) => {
       setUploading(null);
     }
   };
+  
 
   return (
     <div className="p-6 bg-white rounded-lg shadow-md w-full">
