@@ -8,6 +8,7 @@ import ForumSection from "./ForumSection";
 import AssignmentsSection from "./AssignmentsSection";
 import AttendanceSection from "./AttendanceSection";
 import ParticipantsSection from "./ParticipantsSection";
+import CoursesSection from "./CoursesSection";
 
 const ClassPage = () => {
   const { id } = useParams();
@@ -48,7 +49,7 @@ const ClassPage = () => {
       {/* TAB NAVIGATION */}
       <div className="mt-4 border-b border-gray-300">
         <div className="flex space-x-8">
-          {["forum", "assignments", "attendance", "participants"].map((tab) => (
+          {["forum", "assignments", "attendance", "participants", "courses"].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -62,7 +63,9 @@ const ClassPage = () => {
                 ? "Tugas"
                 : tab === "attendance"
                 ? "Absensi"
-                : "Peserta"}
+                : tab === "participants"
+                ? "Peserta"
+                : "Courses"} {/* ✅ Menambahkan "Courses" */}
             </button>
           ))}
         </div>
@@ -74,6 +77,7 @@ const ClassPage = () => {
         {classId && activeTab === "assignments" && <AssignmentsSection classId={classId} />}
         {classId && activeTab === "attendance" && <AttendanceSection classId={classId} />}
         {classId && activeTab === "participants" && <ParticipantsSection classId={classId} />}
+        {classId && activeTab === "courses" && <CoursesSection classId={classId} />} {/* ✅ Courses Tab */}
       </div>
     </div>
   );
